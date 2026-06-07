@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ダイエット管理">
+<title>ダイエット管理</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F7F8FC;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;-webkit-text-size-adjust:100%}
+.app{max-width:390px;margin:0 auto;background:#F7F8FC;min-height:100dvh;padding-bottom:72px}
+
+.global-header{background:#fff;border-bottom:0.5px solid #F0F1F6;padding:.55rem 1rem;display:none;align-items:center;gap:10px}
+.gh-ring-wrap{position:relative;width:44px;height:44px;flex-shrink:0}
+.gh-ring-wrap svg{width:44px;height:44px}
+.gh-ring-pct{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:9px;font-weight:500;color:#1E1F26;line-height:1;text-align:center}
+.gh-g{font-size:20px;font-weight:500;color:#1E1F26;white-space:nowrap;line-height:1.1}
+.gh-datetime{margin-left:auto;text-align:right;display:flex;flex-direction:column;gap:1px}
+.gh-date{font-size:13px;font-weight:500;color:#1E1F26}
+.gh-time{font-size:13px;color:#7F77DD}
+
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:#fff;border-top:0.5px solid #E8EAF0;display:flex;height:60px;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:#C8CAD4;font-size:10px;border:none;background:none;transition:color .15s;padding-bottom:4px;-webkit-tap-highlight-color:transparent}
+.bnav-item i{font-size:21px}
+.bnav-item.active{color:#7F77DD}
+
+.pane{display:none}
+.pane.active{display:block}
+
+.home-header{background:#fff;padding:1.25rem 1.25rem 1rem;border-bottom:0.5px solid #F0F1F6}
+.home-greeting{font-size:13px;color:#A0A4B0;margin-bottom:2px}
+.home-date-big{font-size:18px;font-weight:500;color:#1E1F26}
+.home-time-big{font-size:13px;color:#7F77DD;margin-top:1px}
+.ring-section{display:flex;flex-direction:column;align-items:center;padding:1.5rem 1.25rem 1rem;background:#fff;margin-bottom:8px}
+.ring-wrap{position:relative;width:180px;height:180px}
+.ring-wrap svg{width:180px;height:180px}
+.ring-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+.ring-center-val{font-size:30px;font-weight:500;color:#1E1F26;line-height:1}
+.ring-center-unit{font-size:12px;color:#A0A4B0;margin-top:2px}
+.ring-center-goal{font-size:11px;color:#7F77DD;margin-top:4px;font-weight:500}
+.home-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 1.25rem 1rem;background:#fff;margin-bottom:8px}
+.stat-card{background:#F7F8FC;border-radius:12px;padding:.75rem 1rem}
+.stat-label{font-size:11px;color:#A0A4B0;margin-bottom:4px}
+.stat-val{font-size:18px;font-weight:500;color:#1E1F26}
+.stat-sub{font-size:11px;color:#A0A4B0;margin-top:2px}
+
+.day-nav-row{display:flex;justify-content:space-between;align-items:center;padding:.6rem 1.25rem;background:#fff;border-bottom:0.5px solid #F0F1F6;margin-bottom:8px}
+.day-nav-btn{border:0.5px solid #DDE0EC;border-radius:99px;background:#fff;padding:4px 14px;font-size:12px;cursor:pointer;color:#534AB7;-webkit-tap-highlight-color:transparent}
+.day-nav-date{font-size:13px;color:#1E1F26;font-weight:500}
+.meal-block{background:#fff;margin-bottom:8px;overflow:hidden}
+.meal-header{display:flex;align-items:center;gap:10px;padding:.9rem 1.25rem;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.meal-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ic-b{background:#EEF0FD}.ic-l{background:#FFF5E6}.ic-d{background:#E6F7F2}
+.meal-header-info{flex:1;min-width:0}
+.meal-header-name{font-size:14px;font-weight:500;color:#1E1F26}
+.meal-header-chosen{font-size:11px;color:#A0A4B0;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meal-header-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.meal-tag{font-size:11px;padding:2px 8px;border-radius:99px}
+.tag-c{background:#EEF0FD;color:#534AB7}
+.tag-h{background:#E6F7F2;color:#0F6E56}
+.meal-chevron{font-size:18px;color:#A0A4B0;transition:transform .25s}
+.meal-block.open .meal-chevron{transform:rotate(180deg)}
+.meal-body{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.meal-block.open .meal-body{max-height:1200px}
+.menu-list{border-top:0.5px solid #F0F1F6}
+.menu-item{display:flex;align-items:center;gap:10px;padding:.7rem 1.25rem;cursor:pointer;transition:background .12s;border-bottom:0.5px solid #F0F1F6;-webkit-tap-highlight-color:transparent}
+.menu-item:last-child{border-bottom:none}
+.menu-item.selected{background:#EEF0FD}
+.menu-radio{width:18px;height:18px;border-radius:50%;border:1.5px solid #DDE0EC;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.menu-item.selected .menu-radio{border-color:#7F77DD;background:#7F77DD}
+.menu-radio-dot{width:7px;height:7px;border-radius:50%;background:#fff;display:none}
+.menu-item.selected .menu-radio-dot{display:block}
+.menu-item-text{flex:1}
+.menu-item-name{font-size:13px;font-weight:500;color:#1E1F26}
+.menu-item-desc{font-size:11px;color:#A0A4B0;margin-top:1px;line-height:1.4}
+.menu-item-badge{font-size:11px;color:#534AB7;font-weight:500;background:#EEF0FD;padding:2px 8px;border-radius:99px;flex-shrink:0}
+.menu-item.selected .menu-item-badge{background:#7F77DD;color:#fff}
+.meal-input-area{border-top:0.5px solid #F0F1F6;padding:1rem 1.25rem;background:#FAFBFF;display:none}
+.meal-input-area.visible{display:block}
+.input-area-label{font-size:12px;color:#A0A4B0;margin-bottom:.5rem}
+.input-row{display:flex;align-items:center;gap:8px;margin-bottom:.75rem}
+.input-row-label{font-size:13px;color:#1E1F26;flex:1}
+.p-pill{background:#fff;border:0.5px solid #DDE0EC;border-radius:99px;display:flex;align-items:center;gap:4px;padding:4px 12px}
+.p-pill input{width:50px;border:none;background:transparent;font-size:14px;font-weight:500;color:#1E1F26;text-align:right;outline:none}
+.p-pill-unit{font-size:12px;color:#A0A4B0}
+.register-btn{width:100%;padding:.65rem;background:#7F77DD;color:#fff;border:none;border-radius:99px;font-size:13px;font-weight:500;cursor:pointer;display:block;-webkit-tap-highlight-color:transparent}
+.register-confirm{font-size:12px;color:#0F6E56;text-align:center;margin-top:6px;display:none;font-weight:500}
+
+.section-header{background:#fff;padding:1rem 1.25rem;border-bottom:0.5px solid #F0F1F6;margin-bottom:8px}
+.section-title{font-size:16px;font-weight:500;color:#1E1F26}
+.section-sub{font-size:12px;color:#A0A4B0;margin-top:2px}
+.ex-card{background:#fff;margin-bottom:8px}
+.ex-row{display:flex;align-items:center;gap:10px;padding:.7rem 1.25rem;border-bottom:0.5px solid #F0F1F6}
+.ex-row:last-child{border-bottom:none}
+.ex-info{flex:1}
+.ex-name{font-size:13px;font-weight:500;color:#1E1F26}
+.ex-detail{font-size:11px;color:#A0A4B0;margin-top:1px}
+.ex-right{display:flex;align-items:center;gap:8px}
+.set-count{font-size:12px;color:#7F77DD;font-weight:500;min-width:28px;text-align:right}
+.chk-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid #DDE0EC;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;color:#DDE0EC;-webkit-tap-highlight-color:transparent}
+.chk-btn.done{background:#7F77DD;border-color:#7F77DD;color:#fff}
+.chk-btn i{font-size:13px}
+.training-log-wrap{background:#fff;margin-bottom:8px;padding:1rem 1.25rem}
+.training-log-title{font-size:12px;font-weight:500;color:#A0A4B0;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem}
+.training-log-row{display:flex;align-items:center;gap:8px;margin-bottom:.5rem}
+.training-log-label{font-size:13px;color:#1E1F26;flex:1}
+.training-log-input{width:70px;padding:4px 10px;font-size:13px;border:0.5px solid #DDE0EC;border-radius:99px;text-align:right;background:#F7F8FC;color:#1E1F26;outline:none}
+.training-log-unit{font-size:12px;color:#A0A4B0;min-width:28px}
+.training-register-btn{width:100%;padding:.6rem;background:#7F77DD;color:#fff;border:none;border-radius:99px;font-size:13px;font-weight:500;cursor:pointer;margin-top:.5rem;display:block}
+.training-confirm{font-size:12px;color:#0F6E56;text-align:center;margin-top:6px;display:none;font-weight:500}
+.tip-banner{background:#EEF0FD;border-radius:12px;margin:0 1.25rem 8px;padding:.75rem 1rem}
+.tip-banner-title{font-size:12px;font-weight:500;color:#534AB7;margin-bottom:2px}
+.tip-banner-body{font-size:12px;color:#7F77DD;line-height:1.5}
+
+.tip-block{background:#fff;margin-bottom:8px}
+.tip-row{display:flex;gap:10px;padding:.8rem 1.25rem;border-bottom:0.5px solid #F0F1F6}
+.tip-row:last-child{border-bottom:none}
+.tip-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.tip-row-title{font-size:13px;font-weight:500;color:#1E1F26;margin-bottom:2px}
+.tip-row-body{font-size:12px;color:#A0A4B0;line-height:1.6}
+
+.log-card{background:#fff;margin-bottom:8px}
+.log-row{display:flex;align-items:center;gap:10px;padding:.7rem 1.25rem;border-bottom:0.5px solid #F0F1F6}
+.log-row:last-child{border-bottom:none}
+.log-icon{font-size:18px;color:#7F77DD;flex-shrink:0}
+.log-label{font-size:13px;color:#1E1F26;flex:1}
+.log-input{width:80px;padding:4px 10px;font-size:13px;border:0.5px solid #DDE0EC;border-radius:99px;text-align:right;background:#F7F8FC;color:#1E1F26;outline:none}
+.log-unit{font-size:12px;color:#A0A4B0;min-width:24px}
+.week-wrap{background:#fff;padding:1rem 1.25rem;margin-bottom:8px}
+.week-title{font-size:11px;font-weight:500;color:#A0A4B0;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem}
+.week-days{display:flex;gap:4px}
+.wday{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.wday-lbl{font-size:10px;color:#A0A4B0}
+.wday-barwrap{height:48px;display:flex;align-items:flex-end;justify-content:center}
+.wday-bar{width:14px;border-radius:4px 4px 0 0;background:#DDE0EC}
+.wday-bar.today{background:#7F77DD}
+.wday-val{font-size:10px;color:#A0A4B0}
+.copy-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:calc(100% - 2.5rem);margin:0 1.25rem 1rem;padding:.65rem;background:#7F77DD;color:#fff;border:none;border-radius:99px;font-size:13px;font-weight:500;cursor:pointer}
+.copied-msg{font-size:12px;color:#0F6E56;text-align:center;margin-bottom:8px;display:none;font-weight:500}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="global-header" id="global-header">
+  <div class="gh-ring-wrap">
+    <svg viewBox="0 0 44 44" fill="none">
+      <circle cx="22" cy="22" r="18" stroke="#F0F1F6" stroke-width="5"/>
+      <circle cx="22" cy="22" r="18" stroke="#7F77DD" stroke-width="5" stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="113.1" transform="rotate(-90 22 22)" id="gh-arc"/>
+    </svg>
+    <div class="gh-ring-pct" id="gh-pct">0%</div>
+  </div>
+  <div style="display:flex;align-items:baseline;gap:4px">
+    <span class="gh-g" id="gh-cur">0</span>
+    <span style="font-size:14px;color:#A0A4B0">g / 106g</span>
+  </div>
+  <div class="gh-datetime">
+    <span class="gh-date" id="gh-date">6月7日（日）</span>
+    <span class="gh-time" id="gh-time">--:--</span>
+  </div>
+</div>
+
+<div class="pane active" id="pane-home">
+  <div class="home-header">
+    <div class="home-greeting" id="home-greeting">おはようございます</div>
+    <div class="home-date-big" id="home-date">2026年6月7日</div>
+    <div class="home-time-big" id="home-time">--:--</div>
+  </div>
+  <div class="ring-section">
+    <div class="ring-wrap">
+      <svg viewBox="0 0 180 180" fill="none">
+        <circle cx="90" cy="90" r="72" stroke="#F0F1F6" stroke-width="14"/>
+        <circle cx="90" cy="90" r="72" stroke="#7F77DD" stroke-width="14" stroke-linecap="round" stroke-dasharray="452.4" stroke-dashoffset="452.4" transform="rotate(-90 90 90)" id="ring-arc"/>
+        <circle cx="90" cy="90" r="52" stroke="#F0F1F6" stroke-width="8"/>
+        <circle cx="90" cy="90" r="52" stroke="#5DCAA5" stroke-width="8" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" transform="rotate(-90 90 90)" id="ring-arc2"/>
+      </svg>
+      <div class="ring-center">
+        <div class="ring-center-val" id="ring-val">0</div>
+        <div class="ring-center-unit">g 摂取済</div>
+        <div class="ring-center-goal">目標 106g</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;margin-top:.75rem">
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#A0A4B0"><span style="width:10px;height:10px;border-radius:50%;background:#7F77DD;display:inline-block"></span>タンパク質</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#A0A4B0"><span style="width:10px;height:10px;border-radius:50%;background:#5DCAA5;display:inline-block"></span>達成率</div>
+    </div>
+  </div>
+  <div class="home-stats">
+    <div class="stat-card"><div class="stat-label">朝食</div><div class="stat-val" id="stat-b">—</div><div class="stat-sub">タンパク質 g</div></div>
+    <div class="stat-card"><div class="stat-label">昼食</div><div class="stat-val" id="stat-l">—</div><div class="stat-sub">タンパク質 g</div></div>
+    <div class="stat-card"><div class="stat-label">夕食</div><div class="stat-val" id="stat-d">—</div><div class="stat-sub">タンパク質 g</div></div>
+    <div class="stat-card"><div class="stat-label">残り目標</div><div class="stat-val" id="stat-rem">106</div><div class="stat-sub">g</div></div>
+  </div>
+</div>
+
+<div class="pane" id="pane-food">
+  <div class="day-nav-row">
+    <button class="day-nav-btn" onclick="changeDay(-1)">‹ 前日</button>
+    <span class="day-nav-date" id="food-date-label">6月7日（日）</span>
+    <button class="day-nav-btn" onclick="changeDay(1)">翌日 ›</button>
+  </div>
+  <div class="meal-block" id="block-breakfast">
+    <div class="meal-header" onclick="toggleMeal('breakfast')"><div class="meal-icon ic-b">🌅</div><div class="meal-header-info"><div class="meal-header-name">朝食</div><div class="meal-header-chosen" id="chosen-breakfast">未登録</div></div><div class="meal-header-right"><span class="meal-tag tag-c">コンビニ</span><i class="ti ti-chevron-down meal-chevron"></i></div></div>
+    <div class="meal-body"><div class="menu-list" id="list-breakfast"></div><div class="meal-input-area" id="input-breakfast"><div class="input-area-label">タンパク質量を確認・修正してください</div><div class="input-row"><span class="input-row-label">タンパク質</span><div class="p-pill"><input type="number" id="p-breakfast" min="0" max="200" placeholder="0"><span class="p-pill-unit">g</span></div></div><button class="register-btn" onclick="register('breakfast')">登録する</button><div class="register-confirm" id="confirm-breakfast">登録しました！</div></div></div>
+  </div>
+  <div class="meal-block" id="block-lunch">
+    <div class="meal-header" onclick="toggleMeal('lunch')"><div class="meal-icon ic-l">☀️</div><div class="meal-header-info"><div class="meal-header-name">昼食</div><div class="meal-header-chosen" id="chosen-lunch">未登録</div></div><div class="meal-header-right"><span class="meal-tag tag-c">コンビニ</span><i class="ti ti-chevron-down meal-chevron"></i></div></div>
+    <div class="meal-body"><div class="menu-list" id="list-lunch"></div><div class="meal-input-area" id="input-lunch"><div class="input-area-label">タンパク質量を確認・修正してください</div><div class="input-row"><span class="input-row-label">タンパク質</span><div class="p-pill"><input type="number" id="p-lunch" min="0" max="200" placeholder="0"><span class="p-pill-unit">g</span></div></div><button class="register-btn" onclick="register('lunch')">登録する</button><div class="register-confirm" id="confirm-lunch">登録しました！</div></div></div>
+  </div>
+  <div class="meal-block" id="block-dinner">
+    <div class="meal-header" onclick="toggleMeal('dinner')"><div class="meal-icon ic-d">🌙</div><div class="meal-header-info"><div class="meal-header-name">夕食</div><div class="meal-header-chosen" id="chosen-dinner">未登録</div></div><div class="meal-header-right"><span class="meal-tag tag-h">自炊</span><i class="ti ti-chevron-down meal-chevron"></i></div></div>
+    <div class="meal-body"><div class="menu-list" id="list-dinner"></div><div class="meal-input-area" id="input-dinner"><div class="input-area-label">タンパク質量を確認・修正してください</div><div class="input-row"><span class="input-row-label">タンパク質</span><div class="p-pill"><input type="number" id="p-dinner" min="0" max="200" placeholder="0"><span class="p-pill-unit">g</span></div></div><button class="register-btn" onclick="register('dinner')">登録する</button><div class="register-confirm" id="confirm-dinner">登録しました！</div></div></div>
+  </div>
+</div>
+
+<div class="pane" id="pane-training">
+  <div class="section-header"><div class="section-title">筋トレ</div><div class="section-sub">第1週 — 初級ダンベルメニュー</div></div>
+  <div class="ex-card">
+    <div class="ex-row"><div class="ex-info"><div class="ex-name">ダンベルスクワット</div><div class="ex-detail">3セット × 12回</div></div><div class="ex-right"><span class="set-count" id="sc-0">0/3</span><button class="chk-btn" onclick="countSet(this,0,3)"><i class="ti ti-check"></i></button></div></div>
+    <div class="ex-row"><div class="ex-info"><div class="ex-name">ダンベルベントオーバーロウ</div><div class="ex-detail">3セット × 10回</div></div><div class="ex-right"><span class="set-count" id="sc-1">0/3</span><button class="chk-btn" onclick="countSet(this,1,3)"><i class="ti ti-check"></i></button></div></div>
+    <div class="ex-row"><div class="ex-info"><div class="ex-name">ダンベルショルダープレス</div><div class="ex-detail">3セット × 10回</div></div><div class="ex-right"><span class="set-count" id="sc-2">0/3</span><button class="chk-btn" onclick="countSet(this,2,3)"><i class="ti ti-check"></i></button></div></div>
+    <div class="ex-row"><div class="ex-info"><div class="ex-name">ダンベルカール</div><div class="ex-detail">2セット × 12回</div></div><div class="ex-right"><span class="set-count" id="sc-3">0/2</span><button class="chk-btn" onclick="countSet(this,3,2)"><i class="ti ti-check"></i></button></div></div>
+    <div class="ex-row"><div class="ex-info"><div class="ex-name">プランク</div><div class="ex-detail">30秒 × 3セット</div></div><div class="ex-right"><span class="set-count" id="sc-4">0/3</span><button class="chk-btn" onclick="countSet(this,4,3)"><i class="ti ti-check"></i></button></div></div>
+  </div>
+  <div class="training-log-wrap">
+    <div class="training-log-title">今日の記録</div>
+    <div class="training-log-row"><span class="training-log-label">使用重量（平均）</span><input class="training-log-input" type="number" id="t-weight" placeholder="0" min="0" step="0.5"><span class="training-log-unit">kg</span></div>
+    <div class="training-log-row"><span class="training-log-label">トレーニング時間</span><input class="training-log-input" type="number" id="t-time" placeholder="0" min="0"><span class="training-log-unit">分</span></div>
+    <div class="training-log-row"><span class="training-log-label">メモ（任意）</span><input class="training-log-input" type="text" id="t-memo" placeholder="例：キツかった" style="width:130px"><span class="training-log-unit"></span></div>
+    <button class="training-register-btn" onclick="registerTraining()">記録を保存する</button>
+    <div class="training-confirm" id="training-confirm">保存しました！</div>
+  </div>
+  <div class="tip-banner"><div class="tip-banner-title">今週のポイント</div><div class="tip-banner-body">フォームを最優先に。重量より動作の確認を意識して。週2〜3回を目安に。</div></div>
+</div>
+
+<div class="pane" id="pane-tips">
+  <div class="section-header"><div class="section-title">むくみ対策</div></div>
+  <div class="tip-block">
+    <div class="tip-row"><div class="tip-dot" style="background:#7F77DD"></div><div><div class="tip-row-title">水分補給</div><div class="tip-row-body">1日1.5〜2Lを目標に。朝起きてすぐコップ1杯の水を飲む習慣をつけましょう。</div></div></div>
+    <div class="tip-row"><div class="tip-dot" style="background:#5DCAA5"></div><div><div class="tip-row-title">塩分管理</div><div class="tip-row-body">コンビニ食はナトリウム量を確認。醤油・ドレッシングは控えめに。1日塩分6g以下を目安に。</div></div></div>
+    <div class="tip-row"><div class="tip-dot" style="background:#EF9F27"></div><div><div class="tip-row-title">リンパ・血流促進</div><div class="tip-row-body">朝の軽いストレッチと耳周りのリンパマッサージ。入浴時は湯船に浸かる。</div></div></div>
+    <div class="tip-row"><div class="tip-dot" style="background:#D4537E"></div><div><div class="tip-row-title">睡眠の質</div><div class="tip-row-body">就寝2時間前から水分を控えめに。枕を少し高めにして顔のむくみを防ぐ。</div></div></div>
+    <div class="tip-row"><div class="tip-dot" style="background:#378ADD"></div><div><div class="tip-row-title">むくみ対策食材</div><div class="tip-row-body">カリウムを多く含む食材（バナナ・アボカド・ほうれん草）を積極的に取り入れる。</div></div></div>
+  </div>
+</div>
+
+<div class="pane" id="pane-log">
+  <div class="section-header"><div class="section-title">記録</div></div>
+  <div class="log-card">
+    <div class="log-row"><i class="ti ti-scale log-icon"></i><span class="log-label">体重</span><input class="log-input" type="number" id="log-weight" placeholder="66.0" step="0.1" oninput="saveDay()"><span class="log-unit">kg</span></div>
+    <div class="log-row"><i class="ti ti-moon log-icon"></i><span class="log-label">睡眠時間</span><input class="log-input" type="number" id="log-sleep" placeholder="7.0" step="0.5" oninput="saveDay()"><span class="log-unit">h</span></div>
+    <div class="log-row"><i class="ti ti-run log-icon"></i><span class="log-label">その他の運動</span><input class="log-input" type="text" id="log-extra" placeholder="例：ウォーク" style="width:110px" oninput="saveDay()"><span class="log-unit"></span></div>
+  </div>
+  <div class="week-wrap">
+    <div class="week-title">今週のタンパク質（g）</div>
+    <div class="week-days" id="week-chart"></div>
+  </div>
+  <button class="copy-btn" onclick="copyLog()"><i class="ti ti-copy"></i> 週次レポートをコピー ↗</button>
+  <div class="copied-msg" id="copied-msg">コピーしました！Chatに貼り付けてください</div>
+</div>
+
+</div>
+
+<nav class="bnav">
+  <div class="bnav-item active" id="nav-home" onclick="switchTab('home')"><i class="ti ti-home"></i>ホーム</div>
+  <div class="bnav-item" id="nav-food" onclick="switchTab('food')"><i class="ti ti-bowl-chopsticks"></i>食事</div>
+  <div class="bnav-item" id="nav-training" onclick="switchTab('training')"><i class="ti ti-barbell"></i>筋トレ</div>
+  <div class="bnav-item" id="nav-tips" onclick="switchTab('tips')"><i class="ti ti-droplet"></i>むくみ</div>
+  <div class="bnav-item" id="nav-log" onclick="switchTab('log')"><i class="ti ti-chart-line"></i>記録</div>
+</nav>
+
+<script>
+const GOAL=106,DAYS_JP=['日','月','火','水','木','金','土'];
+let offset=0;
+const store={},registered={breakfast:null,lunch:null,dinner:null},selIdx={breakfast:-1,lunch:-1,dinner:-1};
+const setCounts=[0,0,0,0,0];
+
+const MENUS={
+  breakfast:[
+    {name:'サラダチキン＋ゆで卵＋ヨーグルト',desc:'サラダチキン（プレーン）、ゆで卵1個、ギリシャヨーグルト100g',p:35},
+    {name:'サラダチキンスティック＋豆乳',desc:'サラダチキンスティック2本、無調整豆乳200ml、バナナ1本',p:28},
+    {name:'ツナサンド＋プロテインバー',desc:'ツナ野菜サンドイッチ、プロテインバー1本',p:25},
+    {name:'手動入力',desc:'選択肢以外の食事はこちらから直接入力',p:0},
+  ],
+  lunch:[
+    {name:'サラダチキン＋納豆＋おにぎり',desc:'サラダチキン（ハーブ）、納豆1パック、塩おにぎり1個',p:38},
+    {name:'鶏そぼろ弁当＋豆腐バー',desc:'鶏そぼろご飯弁当、豆腐バー1本',p:32},
+    {name:'豚しゃぶサラダ＋卵サンド',desc:'豚しゃぶサラダ、たまごサンドイッチ',p:30},
+    {name:'手動入力',desc:'選択肢以外の食事はこちらから直接入力',p:0},
+  ],
+  dinner:[
+    {name:'蒸し鶏＋ブロッコリー＋味噌汁',desc:'鶏むね肉の蒸し鶏200g、ブロッコリー、豆腐味噌汁、ご飯（小）',p:40},
+    {name:'豆腐ハンバーグ＋温野菜',desc:'豆腐入り鶏ひきハンバーグ、温野菜、ご飯（小）',p:35},
+    {name:'鮭の塩焼き＋豆腐サラダ',desc:'鮭の塩焼き1切れ、冷奴、きのこスープ、ご飯（小）',p:38},
+    {name:'手動入力',desc:'選択肢以外の食事はこちらから直接入力',p:0},
+  ],
+};
+
+function todayKey(){const d=new Date();d.setDate(d.getDate()+offset);return d.toISOString().slice(0,10)}
+function getTotal(){return['breakfast','lunch','dinner'].map(m=>registered[m]?registered[m].p:0).reduce((a,b)=>a+b,0)}
+
+function updateRing(){
+  const total=getTotal(),pct=Math.min(total/GOAL,1);
+  document.getElementById('ring-arc').style.strokeDashoffset=452.4*(1-pct);
+  document.getElementById('ring-arc2').style.strokeDashoffset=326.7*(1-pct);
+  document.getElementById('ring-val').textContent=Math.round(total);
+  document.getElementById('stat-b').textContent=registered.breakfast!=null?registered.breakfast.p:'—';
+  document.getElementById('stat-l').textContent=registered.lunch!=null?registered.lunch.p:'—';
+  document.getElementById('stat-d').textContent=registered.dinner!=null?registered.dinner.p:'—';
+  document.getElementById('stat-rem').textContent=Math.round(Math.max(0,GOAL-total));
+  document.getElementById('gh-arc').style.strokeDashoffset=113.1*(1-pct);
+  document.getElementById('gh-pct').textContent=Math.round(pct*100)+'%';
+  document.getElementById('gh-cur').textContent=Math.round(total);
+}
+
+function updateClock(){
+  const now=new Date(),hh=String(now.getHours()).padStart(2,'0'),mm=String(now.getMinutes()).padStart(2,'0'),t=hh+':'+mm;
+  document.getElementById('home-time').textContent=t;
+  document.getElementById('gh-time').textContent=t;
+  const h=now.getHours();
+  document.getElementById('home-greeting').textContent=h<11?'おはようございます':h<17?'こんにちは':'こんばんは';
+}
+
+function updateDateLabels(){
+  const d=new Date();d.setDate(d.getDate()+offset);
+  const mn=d.getMonth()+1,dy=d.getDate(),dow=DAYS_JP[d.getDay()];
+  document.getElementById('home-date').textContent=`${mn}月${dy}日（${dow}）`;
+  document.getElementById('gh-date').textContent=`${mn}月${dy}日（${dow}）`;
+  document.getElementById('food-date-label').textContent=`${mn}月${dy}日（${dow}）`;
+}
+
+function buildMenuLists(){
+  ['breakfast','lunch','dinner'].forEach(meal=>{
+    const list=document.getElementById('list-'+meal);list.innerHTML='';
+    MENUS[meal].forEach((item,i)=>{
+      const div=document.createElement('div');div.className='menu-item';
+      const isManual=item.name==='手動入力';
+      div.innerHTML=`<div class="menu-radio"><div class="menu-radio-dot"></div></div><div class="menu-item-text"><div class="menu-item-name">${item.name}</div><div class="menu-item-desc">${item.desc}</div></div>${!isManual?`<div class="menu-item-badge">約${item.p}g</div>`:''}`;
+      div.addEventListener('click',()=>{
+        list.querySelectorAll('.menu-item').forEach(d=>d.classList.remove('selected'));
+        div.classList.add('selected');selIdx[meal]=i;
+        document.getElementById('p-'+meal).value=isManual?'':item.p;
+        document.getElementById('input-'+meal).classList.add('visible');
+        document.getElementById('confirm-'+meal).style.display='none';
+      });
+      list.appendChild(div);
+    });
+  });
+}
+
+function register(meal){
+  const pVal=parseFloat(document.getElementById('p-'+meal).value);
+  if(isNaN(pVal)||pVal<0){document.getElementById('p-'+meal).focus();return;}
+  const idx=selIdx[meal],itemName=idx>=0?MENUS[meal][idx].name:'手動入力';
+  registered[meal]={name:itemName,p:pVal};
+  document.getElementById('chosen-'+meal).textContent=`${itemName}｜${Math.round(pVal)}g`;
+  const conf=document.getElementById('confirm-'+meal);conf.style.display='block';
+  setTimeout(()=>conf.style.display='none',2000);
+  setTimeout(()=>document.getElementById('block-'+meal).classList.remove('open'),1200);
+  updateRing();saveDay();
+}
+
+function toggleMeal(meal){
+  const block=document.getElementById('block-'+meal),wasOpen=block.classList.contains('open');
+  ['breakfast','lunch','dinner'].forEach(m=>document.getElementById('block-'+m).classList.remove('open'));
+  if(!wasOpen)block.classList.add('open');
+}
+
+function countSet(btn,idx,total){
+  setCounts[idx]=Math.min(setCounts[idx]+1,total);
+  document.getElementById('sc-'+idx).textContent=setCounts[idx]+'/'+total;
+  if(setCounts[idx]>=total){btn.classList.add('done');btn.disabled=true;}
+}
+
+function registerTraining(){
+  const conf=document.getElementById('training-confirm');conf.style.display='block';saveDay();
+  setTimeout(()=>conf.style.display='none',2000);
+}
+
+function saveDay(){
+  const key=todayKey();
+  store[key]={rb:registered.breakfast,rl:registered.lunch,rd:registered.dinner,
+    w:document.getElementById('log-weight').value,s:document.getElementById('log-sleep').value,
+    e:document.getElementById('log-extra').value,tw:document.getElementById('t-weight').value,
+    tt:document.getElementById('t-time').value,tm:document.getElementById('t-memo').value};
+  try{localStorage.setItem('diet_store',JSON.stringify(store));}catch(e){}
+}
+
+function loadDay(){
+  const data=store[todayKey()]||{};
+  registered.breakfast=data.rb||null;registered.lunch=data.rl||null;registered.dinner=data.rd||null;
+  ['breakfast','lunch','dinner'].forEach(meal=>{
+    const r=registered[meal];
+    document.getElementById('chosen-'+meal).textContent=r?`${r.name}｜${Math.round(r.p)}g`:'未登録';
+    document.querySelectorAll(`#list-${meal} .menu-item`).forEach(d=>d.classList.remove('selected'));
+    selIdx[meal]=-1;
+    document.getElementById('input-'+meal).classList.remove('visible');
+    document.getElementById('confirm-'+meal).style.display='none';
+    document.getElementById('block-'+meal).classList.remove('open');
+  });
+  document.getElementById('log-weight').value=data.w||'';
+  document.getElementById('log-sleep').value=data.s||'';
+  document.getElementById('log-extra').value=data.e||'';
+  document.getElementById('t-weight').value=data.tw||'';
+  document.getElementById('t-time').value=data.tt||'';
+  document.getElementById('t-memo').value=data.tm||'';
+  updateDateLabels();updateRing();renderWeek();
+}
+
+function changeDay(dir){saveDay();offset+=dir;loadDay();}
+
+function switchTab(name){
+  ['home','food','training','tips','log'].forEach(t=>document.getElementById('pane-'+t).className='pane'+(t===name?' active':''));
+  ['nav-home','nav-food','nav-training','nav-tips','nav-log'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById('nav-'+name).classList.add('active');
+  document.getElementById('global-header').style.display=name==='home'?'none':'flex';
+  if(name==='log')renderWeek();
+  updateRing();updateClock();
+}
+
+function renderWeek(){
+  const c=document.getElementById('week-chart');if(!c)return;c.innerHTML='';
+  const base=new Date();base.setDate(base.getDate()+offset);
+  for(let i=-6;i<=0;i++){
+    const d=new Date(base);d.setDate(d.getDate()+i);
+    const k=d.toISOString().slice(0,10),data=store[k]||{};
+    const t=[data.rb,data.rl,data.rd].map(r=>r?r.p:0).reduce((a,b)=>a+b,0);
+    const h=Math.max(4,Math.round((t/GOAL)*48));
+    const col=document.createElement('div');col.className='wday';
+    col.innerHTML=`<div class="wday-lbl">${DAYS_JP[d.getDay()]}</div><div class="wday-barwrap"><div class="wday-bar${i===0?' today':''}" style="height:${h}px"></div></div><div class="wday-val">${t>0?Math.round(t):'-'}</div>`;
+    c.appendChild(col);
+  }
+}
+
+function copyLog(){
+  const base=new Date();base.setDate(base.getDate()+offset);
+  const lines=[`=== 週次レポート (${document.getElementById('home-date').textContent}) ===`,''];
+  for(let i=-6;i<=0;i++){
+    const d=new Date(base);d.setDate(d.getDate()+i);
+    const k=d.toISOString().slice(0,10),data=store[k]||{};
+    const t=[data.rb,data.rl,data.rd].map(r=>r?r.p:0).reduce((a,b)=>a+b,0);
+    const lbl=`${d.getMonth()+1}/${d.getDate()}(${DAYS_JP[d.getDay()]})`;
+    lines.push(`${lbl} タンパク質:${Math.round(t)}g${data.w?' 体重:'+data.w+'kg':''}${data.s?' 睡眠:'+data.s+'h':''}${data.e?' 運動:'+data.e:''}${data.tw?' 重量:'+data.tw+'kg':''}${data.tt?' 筋トレ:'+data.tt+'分':''}`);
+  }
+  lines.push('','気になること・できなかったことを追記してここに貼ってください。');
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>{
+    const m=document.getElementById('copied-msg');m.style.display='block';setTimeout(()=>m.style.display='none',3000);
+  }).catch(()=>alert(lines.join('\n')));
+}
+
+// 起動時にlocalStorageから復元
+try{const s=localStorage.getItem('diet_store');if(s)Object.assign(store,JSON.parse(s));}catch(e){}
+buildMenuLists();loadDay();updateClock();
+setInterval(updateClock,30000);
+switchTab('home');
+</script>
+</body>
+</html>
