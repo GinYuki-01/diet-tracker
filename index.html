@@ -11,7 +11,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#F7F8FC;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;-webkit-text-size-adjust:100%}
-.app{max-width:390px;margin:0 auto;background:#F7F8FC;min-height:100dvh;padding-bottom:72px}
+.app{max-width:390px;margin:0 auto;background:#F7F8FC;min-height:100dvh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 
 .global-header{background:#fff;border-bottom:0.5px solid #F0F1F6;padding:.55rem 1rem;display:none;align-items:center;gap:10px}
 .gh-ring-wrap{position:relative;width:44px;height:44px;flex-shrink:0}
@@ -22,9 +22,9 @@ body{background:#F7F8FC;font-family:-apple-system,BlinkMacSystemFont,'Helvetica 
 .gh-date{font-size:13px;font-weight:500;color:#1E1F26}
 .gh-time{font-size:13px;color:#7F77DD}
 
-.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:#fff;border-top:0.5px solid #E8EAF0;display:flex;height:60px;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
-.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:#C8CAD4;font-size:10px;border:none;background:none;transition:color .15s;padding-bottom:4px;-webkit-tap-highlight-color:transparent}
-.bnav-item i{font-size:21px}
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:#fff;border-top:0.5px solid #E8EAF0;display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom);padding-top:6px;height:calc(72px + env(safe-area-inset-bottom))}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:#C8CAD4;font-size:11px;border:none;background:none;transition:color .15s;min-height:56px;-webkit-tap-highlight-color:transparent}
+.bnav-item i{font-size:26px}
 .bnav-item.active{color:#7F77DD}
 
 .pane{display:none}
@@ -412,7 +412,9 @@ function loadDay(){
 
 function changeDay(dir){saveDay();offset+=dir;loadDay();}
 
+let currentTab='home';
 function switchTab(name){
+  currentTab=name;
   ['home','food','training','tips','log'].forEach(t=>document.getElementById('pane-'+t).className='pane'+(t===name?' active':''));
   ['nav-home','nav-food','nav-training','nav-tips','nav-log'].forEach(id=>document.getElementById(id).classList.remove('active'));
   document.getElementById('nav-'+name).classList.add('active');
@@ -450,6 +452,28 @@ function copyLog(){
     const m=document.getElementById('copied-msg');m.style.display='block';setTimeout(()=>m.style.display='none',3000);
   }).catch(()=>alert(lines.join('\n')));
 }
+
+// タブ順序
+const TAB_ORDER=['home','food','training','tips','log'];
+
+// スワイプ検知
+(()=>{
+  let sx=0,sy=0;
+  const THRESHOLD=50,VERT_MAX=80;
+  document.addEventListener('touchstart',e=>{
+    sx=e.touches[0].clientX;
+    sy=e.touches[0].clientY;
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-sx;
+    const dy=Math.abs(e.changedTouches[0].clientY-sy);
+    // 縦スクロールは無視、横スワイプのみ
+    if(Math.abs(dx)<THRESHOLD||dy>VERT_MAX)return;
+    const cur=TAB_ORDER.indexOf(currentTab);
+    if(dx<0&&cur<TAB_ORDER.length-1)switchTab(TAB_ORDER[cur+1]); // 左スワイプ→次
+    if(dx>0&&cur>0)switchTab(TAB_ORDER[cur-1]); // 右スワイプ→前
+  },{passive:true});
+})();
 
 // 起動時にlocalStorageから復元
 try{const s=localStorage.getItem('diet_store');if(s)Object.assign(store,JSON.parse(s));}catch(e){}
